@@ -1,11 +1,9 @@
 import { useEffect, useRef } from 'react'
-import { createRng } from '@/lib/random'
+import { REALTIME_SEED, TICK_INTERVAL_MS } from '@/lib/mock/config'
 import { simulateTick } from '@/lib/mock/realtime'
+import { createRng } from '@/lib/random'
 import { useDeviceStore } from '@/stores/device-store'
 import type { Device } from '@/types/device'
-
-const TICK_INTERVAL_MS = 800
-const REALTIME_SEED = 42
 
 /**
  * Hidrata o store de dispositivos a partir do resultado da query e, a

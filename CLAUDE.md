@@ -7,12 +7,11 @@ não-óbvia de stack.
 ## Estado do projeto
 
 Portfólio pessoal, construído de forma autônoma em fases (ver
-`docs/decisions/` e o histórico de commits). Fase atual: **Fase 3 — fluxo
-vertical completo** (mapa, tabela virtualizada, timeline, filtros e
-command palette funcionando ponta a ponta sobre a fundação da Fase 2).
-Ainda faltam: Event Replay, dashboard configurável, dark mode, PWA — isso
-é Fase 4. Não assuma que features de fases posteriores existem até que o
-commit correspondente apareça no histórico.
+`docs/decisions/` e o histórico de commits). Fase atual: **Fase 4 —
+polimento**, com o Event Replay (diferencial do projeto), dark/light mode,
+gráfico ECharts, dashboard configurável (visibilidade de painéis) e um
+PWA instalável (sem cache offline real — ver ADR 0012) já entregues sobre
+o fluxo vertical da Fase 3.
 
 ## Camada de dados/estado (Fase 2)
 
@@ -46,6 +45,38 @@ commit correspondente apareça no histórico.
 - `src/components/error-boundary.tsx` — usado ao redor do `<DeviceMap />`
   porque WebGL pode falhar de verdade (e falha sempre em jsdom). Ver
   `docs/decisions/0010-error-boundary-no-mapa.md`.
+
+## Event Replay, tema, dashboard e PWA (Fase 4)
+
+- **Event Replay** (`src/lib/mock/replay.ts` + `src/hooks/use-event-replay.ts`
+  - `src/stores/replay-store.ts` + `src/components/event-replay-panel.tsx`):
+    não guarda histórico algum — re-roda a simulação determinística do zero
+    (`generateReplayTicks`) a partir do `initialDevices` original e do
+    mesmo `REALTIME_SEED`/`TICK_INTERVAL_MS` de `src/lib/mock/config.ts`.
+    Se algum dia esses dois valores divergirem entre a simulação ao vivo
+    (`use-realtime-sync.ts`) e o replay, o replay para de bater com o que
+    realmente aconteceu — sempre importe de `lib/mock/config.ts`, nunca
+    redeclare.
+- **Tema** (`src/stores/theme-store.ts`, persistido via
+  `zustand/middleware`'s `persist`) + `src/hooks/use-theme-sync.ts`
+  (aplica a classe `.dark` no `<html>`). O mapa troca de basemap CARTO
+  claro/escuro junto (`device-map.tsx`).
+- **Dashboard configurável** (`src/stores/dashboard-store.ts`, também
+  persistido): só visibilidade de painéis (mapa/tabela/timeline/gráfico)
+  via `DashboardLayoutToggle` — não tem drag & drop nem reordenação; foi
+  um corte deliberado de escopo, não uma limitação técnica.
+- **Gráfico** (`src/components/devices/status-history-chart.tsx`, ECharts)
+  lê `device-store.statusHistory` — uma série temporal de contagens por
+  status, um ponto por tick, capada em 200 pontos, alimentada dentro do
+  próprio `applyUpdate` do store (não é uma camada separada).
+- **PWA**: instalável (`public/manifest.webmanifest`), mas sem service
+  worker de cache/offline real — conflitaria com o SW do MSW, do qual o
+  app inteiro depende. Ver `docs/decisions/0012-pwa-sem-service-worker-de-cache.md`.
+  "Offline mode" é só um banner (`offline-banner.tsx` +
+  `use-online-status.ts`) via eventos `online`/`offline` do navegador.
+- **Responsividade**: a barra lateral (`<aside>`) some abaixo do
+  breakpoint `lg` (`hidden lg:flex`) — é uma simplificação deliberada, não
+  existe um layout mobile dedicado com tabs para mapa/tabela/detalhe.
 
 ## Convenções
 
@@ -101,6 +132,26 @@ ctrlKey: true, bubbles: true })))` (ver `e2e/command-palette.spec.ts`).
   de `offsetHeight` não-zero no container de scroll para renderizar linhas
   em teste; sem isso a lista aparece vazia mesmo com dados (ver
   `beforeEach` em `device-table.test.tsx`).
+- **jsdom não tem `window.matchMedia`**: mockado globalmente em
+  `src/test/setup.ts`. Qualquer módulo que use `matchMedia` no
+  top-level/na criação de um store (como `theme-store.ts`, que detecta
+  `prefers-color-scheme` ao montar o store) quebra a importação inteira
+  em teste sem esse mock — inclusive testes que nem usam tema
+  diretamente, se importarem (transitivamente) algo que importa o store.
+- **O import default de `echarts-for-react` inclui a biblioteca `echarts`
+  inteira** (~1.2MB a mais no bundle) — use
+  `echarts-for-react/esm/core` + `src/lib/echarts-core.ts` (registra só
+  `LineChart` +
+  `GridComponent`/`TooltipComponent` + `CanvasRenderer`) e passe a
+  instância via prop `echarts`. O entrypoint `lib/core` é CommonJS e pode
+  chegar ao JSX como namespace object em Vite/React 19, causando
+  "Element type is invalid". Ao adicionar um novo tipo de gráfico, registre
+  o módulo correspondente em `echarts-core.ts` em vez de trocar para o
+  import default.
+- **`DeviceMap` e `StatusHistoryChart` são carregados via `React.lazy`**
+  em `App.tsx` (maplibre-gl e echarts são as duas dependências mais
+  pesadas do bundle) — não importe esses componentes de forma estática em
+  nenhum outro lugar que rode no caminho crítico do primeiro paint.
 
 ## Comandos de qualidade (rodar antes de qualquer commit)
 

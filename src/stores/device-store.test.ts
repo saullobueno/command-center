@@ -33,7 +33,7 @@ function makeEvent(overrides: Partial<DeviceEvent> = {}): DeviceEvent {
 
 describe('useDeviceStore', () => {
   beforeEach(() => {
-    useDeviceStore.setState({ devices: {}, events: [] })
+    useDeviceStore.setState({ devices: {}, events: [], tickCount: 0, simulationStartedAt: null })
   })
 
   it('hydrate popula devices indexados por id', () => {
@@ -46,10 +46,12 @@ describe('useDeviceStore', () => {
     useDeviceStore.getState().hydrate([makeDevice({ id: 'dev-0', status: 'online' })])
     useDeviceStore.getState().applyUpdate(makeEvent(), { status: 'warning' })
 
-    const { devices, events } = useDeviceStore.getState()
+    const { devices, events, tickCount, simulationStartedAt } = useDeviceStore.getState()
     expect(devices['dev-0']?.status).toBe('warning')
     expect(events).toHaveLength(1)
     expect(events[0]?.id).toBe('evt-1')
+    expect(tickCount).toBe(1)
+    expect(simulationStartedAt).toBe(new Date(0).toISOString())
   })
 
   it('applyUpdate ignora eventos de dispositivos inexistentes', () => {
@@ -58,8 +60,21 @@ describe('useDeviceStore', () => {
       .getState()
       .applyUpdate(makeEvent({ deviceId: 'nao-existe' }), { status: 'warning' })
 
-    const { devices, events } = useDeviceStore.getState()
+    const { devices, events, tickCount } = useDeviceStore.getState()
     expect(devices['dev-0']?.status).toBe('online')
     expect(events).toHaveLength(0)
+    expect(tickCount).toBe(0)
+  })
+
+  it('addManualEvent empilha o evento sem tocar em devices/tickCount/statusHistory', () => {
+    useDeviceStore.getState().hydrate([makeDevice({ id: 'dev-0' })])
+    useDeviceStore.getState().addManualEvent(makeEvent({ id: 'note-1', type: 'alert' }))
+
+    const { devices, events, tickCount, statusHistory } = useDeviceStore.getState()
+    expect(events).toHaveLength(1)
+    expect(events[0]?.id).toBe('note-1')
+    expect(devices['dev-0']?.status).toBe('online')
+    expect(tickCount).toBe(0)
+    expect(statusHistory).toHaveLength(0)
   })
 })

@@ -8,6 +8,17 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   plugins: [react(), tailwindcss()],
+  optimizeDeps: {
+    // maplibre-gl cria um worker próprio e pode perder o arquivo gerado pelo
+    // prebundle do Vite entre reloads do dev server.
+    exclude: ['maplibre-gl'],
+  },
+  build: {
+    // maplibre-gl e echarts são pesados de propósito e ficam em chunks
+    // lazy-loaded separados (React.lazy em src/App.tsx) — não fazem parte
+    // do bundle inicial, então o limite padrão de 500kB não se aplica.
+    chunkSizeWarningLimit: 1000,
+  },
   test: {
     environment: 'jsdom',
     globals: true,

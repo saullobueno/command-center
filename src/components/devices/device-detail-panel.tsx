@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatLastSeen, formatPercent, TYPE_LABEL } from '@/lib/device-format'
 import { SITE_NAME_BY_ID } from '@/lib/mock/site-lookup'
 import type { Device } from '@/types/device'
+import { DeviceNoteForm } from './device-note-form'
 import { StatusBadge } from './status-badge'
 
 interface DeviceDetailPanelProps {
@@ -40,6 +41,7 @@ export function DeviceDetailPanel({ device }: DeviceDetailPanelProps) {
           </div>
         ))}
       </CardContent>
+      <DeviceNoteForm key={device.id} deviceId={device.id} />
     </Card>
   )
 }

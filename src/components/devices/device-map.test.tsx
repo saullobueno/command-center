@@ -21,8 +21,21 @@ function makeDevice(overrides: Partial<Device> = {}): Device {
 
 describe('DeviceMap', () => {
   it('monta e desmonta sem lançar erros (maplibre-gl mockado, sem WebGL real)', () => {
-    const { unmount } = render(
-      <DeviceMap devices={[makeDevice()]} selectedDeviceId={null} onSelectDevice={vi.fn()} />,
+    const { unmount, rerender } = render(
+      <DeviceMap
+        devices={[makeDevice()]}
+        selectedDeviceId={null}
+        onSelectDevice={vi.fn()}
+        theme="light"
+      />,
+    )
+    rerender(
+      <DeviceMap
+        devices={[makeDevice()]}
+        selectedDeviceId={null}
+        onSelectDevice={vi.fn()}
+        theme="dark"
+      />,
     )
     unmount()
   })
