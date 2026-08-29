@@ -7,16 +7,32 @@ não-óbvia de stack.
 ## Estado do projeto
 
 Portfólio pessoal, construído de forma autônoma em fases (ver
-`docs/decisions/` e o histórico de commits). Fase atual: **Fase 1 —
-scaffold e tooling**. Não assuma que features de fases posteriores (mapa,
-Event Replay, dashboard configurável) existem até que o commit
-correspondente apareça no histórico.
+`docs/decisions/` e o histórico de commits). Fase atual: **Fase 2 —
+fundação técnica** (camada de dados/estado e simulação de tempo real
+prontas; ainda sem UI real — mapa, tabela, timeline e Event Replay são
+Fase 3). Não assuma que features de fases posteriores existem até que o
+commit correspondente apareça no histórico.
+
+## Camada de dados/estado (Fase 2)
+
+- `src/types/` — `Device`, `Site`, `DeviceEvent`.
+- `src/lib/mock/` — geração determinística de dispositivos (`devices.ts`),
+  simulação de tick em tempo real (`realtime.ts`), seeds/config
+  (`config.ts`). Tudo alimentado por `src/lib/random.ts` (PRNG com seed) —
+  nunca use `Math.random()` nesta camada, quebra o determinismo necessário
+  para o Event Replay (ver `docs/decisions/0007-simulacao-tempo-real.md`).
+- `src/stores/device-store.ts` — Zustand, estado ao vivo dos dispositivos.
+  Ver `docs/decisions/0006-camadas-de-estado.md` para a fronteira entre
+  isso e o TanStack Query.
+- `src/hooks/use-devices-query.ts` + `use-realtime-sync.ts` — ainda não
+  chamados por nenhuma tela; serão consumidos pela Fase 3.
 
 ## Convenções
 
 - Gerenciador de pacotes: `npm` (não usar `pnpm`/`yarn`).
 - Alias de import: `@/*` aponta para `src/*` (configurado em
-  `tsconfig.json`, `tsconfig.app.json` e via `vite-tsconfig-paths`).
+  `tsconfig.json`, `tsconfig.app.json` e via `resolve.tsconfigPaths: true`
+  nativo do Vite — sem plugin extra).
 - Estilo de código: sem ponto e vírgula, aspas simples (ver
   `.prettierrc.json`). Rode `npm run format` antes de commitar.
 - Lint: `oxlint` (não ESLint — ver `docs/decisions/0002-lint-e-formatacao.md`).
