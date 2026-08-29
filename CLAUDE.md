@@ -7,10 +7,11 @@ não-óbvia de stack.
 ## Estado do projeto
 
 Portfólio pessoal, construído de forma autônoma em fases (ver
-`docs/decisions/` e o histórico de commits). Fase atual: **Fase 2 —
-fundação técnica** (camada de dados/estado e simulação de tempo real
-prontas; ainda sem UI real — mapa, tabela, timeline e Event Replay são
-Fase 3). Não assuma que features de fases posteriores existem até que o
+`docs/decisions/` e o histórico de commits). Fase atual: **Fase 3 — fluxo
+vertical completo** (mapa, tabela virtualizada, timeline, filtros e
+command palette funcionando ponta a ponta sobre a fundação da Fase 2).
+Ainda faltam: Event Replay, dashboard configurável, dark mode, PWA — isso
+é Fase 4. Não assuma que features de fases posteriores existem até que o
 commit correspondente apareça no histórico.
 
 ## Camada de dados/estado (Fase 2)
@@ -24,8 +25,27 @@ commit correspondente apareça no histórico.
 - `src/stores/device-store.ts` — Zustand, estado ao vivo dos dispositivos.
   Ver `docs/decisions/0006-camadas-de-estado.md` para a fronteira entre
   isso e o TanStack Query.
-- `src/hooks/use-devices-query.ts` + `use-realtime-sync.ts` — ainda não
-  chamados por nenhuma tela; serão consumidos pela Fase 3.
+- `src/hooks/use-devices-query.ts` + `use-realtime-sync.ts` — chamados a
+  partir de `App.tsx`.
+
+## UI do fluxo principal (Fase 3)
+
+- `src/components/devices/` — mapa (`device-map.tsx`, MapLibre + CARTO,
+  ver `docs/decisions/0008-tiles-do-mapa.md`), tabela virtualizada
+  (`device-table.tsx` + `device-table-columns.tsx`, TanStack Table v8 — ver
+  `docs/decisions/0009-tanstack-table-v8.md` — + TanStack Virtual),
+  timeline (`event-timeline.tsx`), filtros (`device-filters.tsx`), painel
+  de detalhe (`device-detail-panel.tsx`).
+- `src/stores/ui-store.ts` — Zustand, estado de UI compartilhado (filtros,
+  dispositivo selecionado, abertura do command palette). Filtragem em si é
+  uma função pura testável em `src/lib/filter-devices.ts`.
+- `src/components/command-palette.tsx` — Ctrl+K/Cmd+K, busca dispositivos
+  por nome. Renderiza no máximo 50 resultados por vez (não deixe a lista
+  crescer sem paginação/corte — são milhares de dispositivos, `cmdk` não
+  virtualiza sozinho).
+- `src/components/error-boundary.tsx` — usado ao redor do `<DeviceMap />`
+  porque WebGL pode falhar de verdade (e falha sempre em jsdom). Ver
+  `docs/decisions/0010-error-boundary-no-mapa.md`.
 
 ## Convenções
 
@@ -64,6 +84,23 @@ commit correspondente apareça no histórico.
 - **Não reintroduza `@storybook/addon-vitest`** sem antes confirmar que o
   bug de interop CJS→ESM no modo browser do Vitest foi corrigido upstream —
   ver `docs/decisions/0005-storybook-sem-addon-vitest.md`.
+- **`enableMocking()` precisa rodar em todo `MODE`**, não só em
+  desenvolvimento — este projeto não tem backend real, então o MSW é a API
+  permanente. Ver `docs/decisions/0011-msw-sempre-ativo.md`. Se o app ficar
+  preso no skeleton de carregamento no `npm run preview`/build de produção,
+  é o primeiro lugar a checar.
+- **`page.keyboard.press('Control+K')` do Playwright é interceptado pelo
+  Chromium headless** antes de chegar à página (mesmo atalho que a omnibox
+  do navegador usa) — o listener `keydown` do app nunca dispara. Em e2e,
+  dispare o evento diretamente: `page.evaluate(() =>
+document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k',
+ctrlKey: true, bubbles: true })))` (ver `e2e/command-palette.spec.ts`).
+- **jsdom não tem WebGL nem `ResizeObserver`**: `maplibre-gl` é mockado
+  globalmente em `src/test/setup.ts` (`vi.mock('maplibre-gl', ...)`, com
+  named exports — a lib não tem export default). TanStack Virtual precisa
+  de `offsetHeight` não-zero no container de scroll para renderizar linhas
+  em teste; sem isso a lista aparece vazia mesmo com dados (ver
+  `beforeEach` em `device-table.test.tsx`).
 
 ## Comandos de qualidade (rodar antes de qualquer commit)
 

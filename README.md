@@ -46,3 +46,10 @@ em [`docs/decisions/`](./docs/decisions/).
 ## Status
 
 Projeto em construção ativa. Veja `CLAUDE.md` para o estado atual das fases.
+
+- ✅ Fase 1 — scaffold e tooling
+- ✅ Fase 2 — fundação de dados/estado (dispositivos simulados, tempo real determinístico)
+- ✅ Fase 3 — fluxo vertical completo: mapa interativo (MapLibre, clustering),
+  tabela virtualizada, timeline de eventos, filtros, command palette (Ctrl+K)
+- ⏳ Fase 4 — Event Replay, dashboard configurável, gráficos ECharts, dark
+  mode, PWA, polimento final
