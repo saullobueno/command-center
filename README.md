@@ -2,7 +2,7 @@
 
 ## Veja funcionando
 
-Demo ao vivo: [command-center-ten-umber.vercel.app](https://command-center-ten-umber.vercel.app)
+Demo ao vivo: [command-center-ten-umber.vercel.app](https://command-center-ten-umber.vercel.app/)
 
 Roteiro de 3 minutos:
 
