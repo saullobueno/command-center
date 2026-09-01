@@ -1,5 +1,33 @@
 # Command Center
 
+## Veja funcionando
+
+Demo ao vivo: [command-center-ten-umber.vercel.app](https://command-center-ten-umber.vercel.app)
+
+Roteiro de 3 minutos:
+
+1. Abra o dashboard e observe o mapa, os indicadores no topo, a tabela e a
+   timeline sendo alimentados pela simulação em tempo real.
+2. Use os filtros de status/tipo/região e o command palette (`Ctrl+K` ou
+   `Cmd+K`) para encontrar um dispositivo e abrir o painel de detalhes.
+3. Ative o **Event Replay**, ajuste a janela de tempo e dê play para ver os
+   dispositivos voltarem a um estado histórico reproduzido de forma
+   determinística.
+
+Sinais técnicos demonstrados:
+
+- Fluxo completo sem backend real: API, eventos e "WebSocket" simulados no
+  cliente com MSW e geração determinística.
+- UI com mapa MapLibre, clustering, tabela virtualizada, filtros, command
+  palette, timeline e painel de detalhes conectados ao mesmo estado.
+- Estado separado por responsabilidade: TanStack Query para dados assíncronos,
+  Zustand para domínio/UI/replay/tema e funções puras testáveis na camada de
+  simulação.
+- Polimento de produto: dark/light mode persistido, dashboard configurável,
+  gráfico ECharts lazy-loaded, PWA instalável e fallback para falhas de WebGL.
+- Qualidade de engenharia: TypeScript, Vitest/Testing Library, Playwright,
+  Storybook, ADRs e pipeline de CI.
+
 Centro de operações em tempo real para uma operação fictícia de
 IoT/logística/energia — milhares de dispositivos num mapa interativo,
 métricas ao vivo, timeline de eventos, alertas e um **Event Replay** que
