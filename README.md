@@ -1,5 +1,8 @@
 # Command Center
 
+Dashboard operacional em tempo real para monitoramento de dispositivos IoT
+simulados, com mapa interativo, alertas, métricas ao vivo e Event Replay.
+
 ## Veja funcionando
 
 Demo ao vivo: [command-center-ten-umber.vercel.app](https://command-center-ten-umber.vercel.app/)
